@@ -1,0 +1,45 @@
+# NOTE: ignore git files
+.git
+.gitignore
+
+# NOTE: ignore documentation
+README.md
+*.md
+
+# NOTE: ignore CI/CD files
+.github/
+
+# NOTE: ignore logs and temporary files
+logs.log
+*.log
+*.tmp
+
+# NOTE: ignore test files
+*_test.go
+test_*
+
+# NOTE: ignore local storage
+storage/
+*.db
+*.sqlite
+*.sqlite3
+
+# NOTE: ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# NOTE: ignore environment files
+.env
+.env.local
+.env.example
+
+# NOTE: ignore build artifacts
+main
+bin/
+dist/
+
+# NOTE: ignore OS files
+.DS_Store
+Thumbs.db

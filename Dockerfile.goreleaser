@@ -1,0 +1,18 @@
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates tzdata curl
+
+RUN addgroup -g 1001 -S persisto && \
+    adduser -u 1001 -S persisto -G persisto
+
+WORKDIR /app
+
+COPY persisto /app/persisto
+
+RUN chown -R persisto:persisto /app
+
+USER persisto
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/persisto"]
