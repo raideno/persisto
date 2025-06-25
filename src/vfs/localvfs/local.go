@@ -13,7 +13,7 @@ import (
 
 	"persisto/src/utils"
 
-	"github.com/ncruces/go-sqlite3"
+	sqlite3 "github.com/ncruces/go-sqlite3"
 	"github.com/ncruces/go-sqlite3/vfs"
 )
 

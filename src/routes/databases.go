@@ -8,7 +8,7 @@ import (
 	"persisto/src/internal/stages"
 	"persisto/src/utils"
 
-	"github.com/danielgtaylor/huma/v2"
+	huma "github.com/danielgtaylor/huma/v2"
 )
 
 func RegisterHealthRoutes(api huma.API) {
@@ -148,9 +148,9 @@ func RegisterDatabasesRoutes(api huma.API) {
 		}
 	}
 	type QueryResult struct {
-		Success bool                    `json:"success"`
-		Data    utils.QueryResultType   `json:"data,omitempty"`
-		Error   string                  `json:"error,omitempty"`
+		Success bool                  `json:"success"`
+		Data    utils.QueryResultType `json:"data,omitempty"`
+		Error   string                `json:"error,omitempty"`
 	}
 	type QueryDatabaseOutput struct {
 		Body struct {
@@ -186,11 +186,11 @@ func RegisterDatabasesRoutes(api huma.API) {
 				index int
 				query string
 			}
-			
+
 			type queryResponse struct {
-				index int
+				index  int
 				result utils.QueryResultType
-				err   error
+				err    error
 			}
 
 			jobs := make(chan queryJob, len(input.Body.Queries))
@@ -248,9 +248,9 @@ func RegisterDatabasesRoutes(api huma.API) {
 		}
 	}
 	type ExecuteResult struct {
-		Success bool                   `json:"success"`
-		Data    utils.ExecResultType   `json:"data,omitempty"`
-		Error   string                 `json:"error,omitempty"`
+		Success bool                 `json:"success"`
+		Data    utils.ExecResultType `json:"data,omitempty"`
+		Error   string               `json:"error,omitempty"`
 	}
 	type ExecuteDatabaseOutput struct {
 		Body struct {

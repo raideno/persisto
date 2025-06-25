@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/caarlos0/env/v10"
+	env "github.com/caarlos0/env/v10"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap/zapcore"
 )

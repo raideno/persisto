@@ -71,7 +71,7 @@ func copyDataBetweenStages(database Database, sourceStage, targetStage uint) err
 
 func GetConnectionStringForStage(database Database, stage uint) (string, error) {
 	name := database.GetName()
-	
+
 	switch stage {
 	case utils.Config.Storage.Memory.StageNumber:
 		return fmt.Sprintf("file:/%s?vfs=memory", name), nil
@@ -107,14 +107,14 @@ func copyFromMemoryStage(sourceDB *sql.DB, targetConn string) error {
 	defer tempDB.Close()
 
 	targetPath := extractPathFromConnectionString(targetConn)
-	
+
 	// Remove target file if it exists to avoid "output file already exists" error
 	if _, err := os.Stat(targetPath); err == nil {
 		if err := os.Remove(targetPath); err != nil {
 			return fmt.Errorf("failed to remove existing target file %s: %v", targetPath, err)
 		}
 	}
-	
+
 	_, err = tempDB.Exec("VACUUM INTO ?", targetPath)
 	if err != nil {
 		return fmt.Errorf("failed to vacuum temp database to target: %v", err)
@@ -192,7 +192,11 @@ func copyAcrossVFS(sourceDB *sql.DB, targetConn string) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			utils.Logger.Warn("failed to rollback transaction", zap.Error(err))
+		}
+	}()
 
 	// Copy schema first - get CREATE statements
 	for _, table := range tables {
@@ -228,7 +232,7 @@ func copyAcrossVFS(sourceDB *sql.DB, targetConn string) error {
 			var name, dataType string
 			var notNull, pk int
 			var defaultValue interface{}
-			
+
 			if err := columnRows.Scan(&cid, &name, &dataType, &notNull, &defaultValue, &pk); err != nil {
 				columnRows.Close()
 				return fmt.Errorf("failed to scan column info: %v", err)
@@ -241,10 +245,15 @@ func copyAcrossVFS(sourceDB *sql.DB, targetConn string) error {
 			continue
 		}
 
-		// Build INSERT statement
-		columnList := strings.Join(columns, ", ")
+		// Build INSERT statement with quoted identifiers for safety
+		quotedColumns := make([]string, len(columns))
+		for i, col := range columns {
+			quotedColumns[i] = `"` + strings.ReplaceAll(col, `"`, `""`) + `"`
+		}
+		columnList := strings.Join(quotedColumns, ", ")
 		placeholders := strings.Repeat("?, ", len(columns)-1) + "?"
-		insertSQL := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, columnList, placeholders)
+		quotedTable := `"` + strings.ReplaceAll(table, `"`, `""`) + `"`
+		insertSQL := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", quotedTable, columnList, placeholders) // #nosec G201 - table/column names from schema, using placeholders for values
 
 		// Prepare insert statement
 		stmt, err := tx.Prepare(insertSQL)

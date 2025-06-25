@@ -65,7 +65,7 @@ func ExecResultToMap(result sql.Result) (ExecResultType, error) {
 	}
 
 	return ExecResultType{
-		"RowsAffected":  rowsAffected,
+		"RowsAffected": rowsAffected,
 		"LastInsertID": lastInsertID,
 	}, nil
 }

@@ -14,7 +14,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -47,7 +47,7 @@ func init() {
 
 func main() {
 	utils.Logger.Debug("config.", zap.Reflect("config", utils.Config))
-	
+
 	stages.SetupStages()
 	internal.SetupStagesMonitoring()
 

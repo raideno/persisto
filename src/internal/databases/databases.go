@@ -92,7 +92,7 @@ func (databases *Databases) FindByName(name string) (*Database, error) {
 
 func (databases *Databases) CreateDatabaseAndInitialize(name string, stage uint) (*Database, error) {
 	var path string
-	
+
 	switch stage {
 	case utils.Config.Storage.Memory.StageNumber:
 		path = fmt.Sprintf("/%s", name)
@@ -148,21 +148,21 @@ func (database *Database) initialize() error {
 	// NOTE: for remote databases, we need to ensure the file is actually created in the storage, SQLite won't create the file until we perform an operation that requires writing
 	if database.Stage == utils.Config.Storage.Remote.StageNumber {
 		utils.Logger.Debug("Creating database file in remote storage", zap.String("name", database.Name))
-		
+
 		// NOTE: create the database file by performing a write operation
 		_, err = connection.Exec("CREATE TABLE IF NOT EXISTS _persisto_init (id INTEGER PRIMARY KEY)")
 		if err != nil {
 			utils.Logger.Error("Database initialization failed - failed to create init table in remote storage", zap.String("connectionString", connectionString), zap.String("name", database.Name), zap.Error(err))
 			return err
 		}
-		
+
 		// NOTE: clean up the init table - this ensures the file exists and is properly initialized
 		_, err = connection.Exec("DROP TABLE IF EXISTS _persisto_init")
 		if err != nil {
 			utils.Logger.Error("Database initialization failed - failed to cleanup init table in remote storage", zap.String("connectionString", connectionString), zap.String("name", database.Name), zap.Error(err))
 			return err
 		}
-		
+
 		utils.Logger.Debug("Successfully created database file in remote storage", zap.String("name", database.Name))
 	} else {
 		// NOTE: for non-remote databases, just test with a simple query
@@ -174,7 +174,7 @@ func (database *Database) initialize() error {
 	}
 
 	utils.Logger.Info("Database successfully initialized", zap.String("name", database.Name), zap.Uint("stage", database.Stage), zap.String("connectionString", connectionString))
-	
+
 	return nil
 }
 
