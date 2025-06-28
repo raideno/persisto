@@ -1,6 +1,8 @@
 ### files to ignore ###
 *.ignore
 
+.DS_Store
+
 ### dotenv ###
 .env
 

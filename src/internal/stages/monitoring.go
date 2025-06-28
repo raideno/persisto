@@ -37,7 +37,7 @@ func MonitorAndDemoteDatabases(databases []Database) {
 
 	for _, database := range databases {
 		// NOTE: database is already on furthest stage, no demoting possible
-		if database.GetStage() >= 3 {
+		if utils.IsFarthestStage(database.GetStage()) {
 			continue
 		}
 

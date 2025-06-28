@@ -75,7 +75,6 @@ func RegisterDatabasesRoutes(api huma.API) {
 
 			response := &ListDatabasesOutput{}
 
-			// Convert database objects to DatabaseInfo structs
 			for _, db := range databases.Items {
 				dbInfo := DatabaseInfo{
 					Name:           db.GetName(),
@@ -281,7 +280,6 @@ func RegisterDatabasesRoutes(api huma.API) {
 
 			response := &ExecuteDatabaseOutput{}
 
-			// Execute queries sequentially (writes need to be ordered)
 			for _, query := range input.Body.Queries {
 				result, err := database.Execute(query)
 

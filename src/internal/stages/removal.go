@@ -6,7 +6,6 @@ import (
 
 	"persisto/src/utils"
 	"persisto/src/vfs/localvfs"
-	"persisto/src/vfs/memoryvfs"
 	"persisto/src/vfs/remotevfs"
 
 	"go.uber.org/zap"
@@ -19,13 +18,14 @@ func RemoveFromStage(database Database, stage uint) error {
 		zap.Uint("stage", stage),
 	)
 
-	if stage < 1 || stage > 3 {
+	if !utils.IsRemovableStage(stage) {
+		removableStages := utils.GetRemovableStages()
 		utils.Logger.Error(
 			"Invalid stage for removal.",
 			zap.Uint("stage", stage),
 			zap.Reflect("database", database),
 		)
-		return fmt.Errorf("invalid stage: %d. Valid stages are 1-3", stage)
+		return fmt.Errorf("invalid stage: %d. Valid removable stages are %v", stage, removableStages)
 	}
 
 	if stage == database.GetStage() {
@@ -38,23 +38,13 @@ func RemoveFromStage(database Database, stage uint) error {
 	}
 
 	switch stage {
-	case utils.Config.Storage.Memory.StageNumber:
-		return removeFromMemoryStage(database)
-	case utils.Config.Storage.Local.StageNumber:
+	case utils.GetLocalStage():
 		return removeFromLocalStage(database)
-	case utils.Config.Storage.Remote.StageNumber:
+	case utils.GetRemoteStage():
 		return removeFromR2Stage(database)
 	}
 
 	utils.Logger.Error("Invalid stage for removal.", zap.Uint("stage", stage), zap.Reflect("database", database))
-
-	return nil
-}
-
-func removeFromMemoryStage(database Database) error {
-	memoryvfs.Delete(database.GetName())
-
-	utils.Logger.Debug("Successfully removed database from memory stage.", zap.Reflect("database", database))
 
 	return nil
 }

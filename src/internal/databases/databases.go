@@ -10,7 +10,6 @@ import (
 	"persisto/src/internal/stages"
 	"persisto/src/utils"
 	"persisto/src/vfs/localvfs"
-	"persisto/src/vfs/memoryvfs"
 	"persisto/src/vfs/remotevfs"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -65,8 +64,6 @@ func SetupDatabases() (*Databases, error) {
 
 func (database *Database) GetConnectionString() (string, error) {
 	switch database.Stage {
-	case utils.Config.Storage.Memory.StageNumber:
-		return fmt.Sprintf("file:/%s?vfs=memory", database.Name), nil
 	case utils.Config.Storage.Local.StageNumber:
 		return fmt.Sprintf("file:%s?vfs=disk", database.Path), nil
 	case utils.Config.Storage.Remote.StageNumber:
@@ -94,15 +91,14 @@ func (databases *Databases) CreateDatabaseAndInitialize(name string, stage uint)
 	var path string
 
 	switch stage {
-	case utils.Config.Storage.Memory.StageNumber:
-		path = fmt.Sprintf("/%s", name)
-	case utils.Config.Storage.Local.StageNumber:
+	case utils.GetLocalStage():
 		path = fmt.Sprintf("%s/%s.db", DEFAULT_DATABASE_PATH, name)
-	case utils.Config.Storage.Remote.StageNumber:
+	case utils.GetRemoteStage():
 		path = name
 	default:
+		minStage, maxStage := utils.GetValidStageRange()
 		utils.Logger.Error("Invalid stage provided for database creation.", zap.Uint("stage", stage))
-		return nil, fmt.Errorf("invalid stage: %d. Valid stages are 1-3", stage)
+		return nil, fmt.Errorf("invalid stage: %d. Valid stages are %d-%d", stage, minStage, maxStage)
 	}
 
 	database := &Database{
@@ -300,11 +296,11 @@ func (database *Database) Delete() error {
 	err := database.removeFromDatabasesList()
 	if err != nil {
 		utils.Logger.Error(
-			"Failed to remove database from in-memory list",
+			"Failed to remove database from list",
 			zap.String("database", database.Name),
 			zap.Error(err),
 		)
-		return fmt.Errorf("failed to remove database from in-memory list: %v", err)
+		return fmt.Errorf("failed to remove database from list: %v", err)
 	}
 
 	utils.Logger.Info("Database deletion completed successfully", zap.String("database", database.Name))
@@ -333,19 +329,6 @@ func ListDatabases(stageIndex uint) (*Databases, error) {
 	var databases []*Database
 
 	switch stageIndex {
-	case utils.Config.Storage.Memory.StageNumber:
-		memoryDatabases := memoryvfs.ListDatabases()
-		for _, memDb := range memoryDatabases {
-			databases = append(databases, &Database{
-				// NOTE: memory databases use a path with a leading slash
-				Path:         fmt.Sprintf("/%s", memDb.Name),
-				Name:         memDb.Name,
-				Stage:        utils.Config.Storage.Memory.StageNumber,
-				LastAccessed: time.Now(),
-				RequestCount: 0,
-			})
-		}
-
 	case utils.Config.Storage.Local.StageNumber:
 		files, err := localvfs.ListFiles(DEFAULT_DATABASE_PATH)
 		if err != nil {
@@ -369,11 +352,12 @@ func ListDatabases(stageIndex uint) (*Databases, error) {
 			}
 		}
 
-	case utils.Config.Storage.Remote.StageNumber:
+	case utils.GetRemoteStage():
 		r2Databases, err := remotevfs.ListDatabases()
 		if err != nil {
 			utils.Logger.Error("Failed to list R2 databases.", zap.Error(err))
-			return nil, fmt.Errorf("invalid stage index= %d. Valid stages are 1-3", stageIndex)
+			minStage, maxStage := utils.GetValidStageRange()
+			return nil, fmt.Errorf("invalid stage index= %d. Valid stages are %d-%d", stageIndex, minStage, maxStage)
 		} else {
 			for _, r2Db := range r2Databases {
 				databases = append(databases, &Database{
@@ -387,8 +371,9 @@ func ListDatabases(stageIndex uint) (*Databases, error) {
 		}
 
 	default:
+		minStage, maxStage := utils.GetValidStageRange()
 		utils.Logger.Error("Invalid stage index provided.", zap.Uint("stageIndex", stageIndex))
-		return nil, fmt.Errorf("invalid stage index: %d. Valid stages are 1-3", stageIndex)
+		return nil, fmt.Errorf("invalid stage index: %d. Valid stages are %d-%d", stageIndex, minStage, maxStage)
 	}
 
 	utils.Logger.Debug(

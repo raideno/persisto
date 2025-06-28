@@ -17,7 +17,7 @@ func (database *Database) removeFromDatabasesList() error {
 		if db.Name == database.Name {
 			Dbs.Items = append(Dbs.Items[:i], Dbs.Items[i+1:]...)
 			utils.Logger.Info(
-				"Successfully removed database from in-memory list",
+				"Successfully removed database from list",
 				zap.String("database", database.Name),
 				zap.Int("remainingDatabases", len(Dbs.Items)),
 			)
@@ -26,7 +26,7 @@ func (database *Database) removeFromDatabasesList() error {
 	}
 
 	utils.Logger.Warn(
-		"Database not found in in-memory list during deletion",
+		"Database not found in list during deletion",
 		zap.String("database", database.Name),
 	)
 

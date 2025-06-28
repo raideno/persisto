@@ -7,53 +7,11 @@
   <img src="./assets/persisto-cropped.png" alt="Persisto Logo" width="256" />
 </p>
 
-A lightweight Go server for managing SQLite databases with automatic memory caching and multi-stage storage support.
+A lightweight Go server for managing SQLite databases with automatic caching and multi-stage storage support.
 
-## Features & Roadmap
+## Security Notice
 
-### Core Database Operations
-
-- [x] List all available databases
-- [x] Query databases (Read/Write operations)
-- [ ] Download database files
-- [ ] Upload database files
-- [ ] Realtime database updates listening
-
-### Storage & Performance
-
-- [x] Multi-stage storage (disk → memory caching)
-- [ ] Configurable database limits (count & size)
-- [ ] Batched syncing for cost efficiency
-- [ ] Partial database stage promotion (table/row level)
-
-### Security & Access Control
-
-- [ ] JWT-based authentication with Claims
-- [ ] Database access permissions
-- [ ] Rolling JWT key support
-- [ ] Regex & Wildcard authorization patterns
-
-### Management & Monitoring
-
-- [ ] Web dashboard UI
-- [ ] Infrastructure as code
-- [ ] Usage analytics
-- [ ] Health monitoring
-
-### Developer Experience
-
-- [ ] API documentation
-- [ ] Usage examples
-- [ ] Client SDKs
-
-## Architecture
-
-Persisto uses a simple architecture:
-
-- **SQLite3 driver** for database operations
-- **Abstracted file system** supporting local disk, remote storage, and memory
-- **Automatic caching** moves frequently accessed data from disk to memory
-- **Multi-stage storage** optimizes for both performance and cost
+⚠️ **Important**: For now this server does not include built-in authentication or authorization. Deploy only in secure, controlled environments. Future versions will include JWT-based authentication.
 
 ## Quick Start
 
@@ -103,12 +61,6 @@ docker-compose up -d
 | `SETTINGS_STAGE_TIMEOUT_SECONDS`           | Stage timeout in seconds         | 300     |
 | `SETTINGS_REQUEST_COUNT_THRESHOLD`         | Request count threshold          | 2       |
 | `SETTINGS_AUTO_SYNC_ENABLED`               | Enable automatic synchronization | true    |
-
-#### Storage - Memory
-
-| Variable              | Description         | Default        |
-| --------------------- | ------------------- | -------------- |
-| `STORAGE_MEMORY_NAME` | Memory storage name | Memory Storage |
 
 #### Storage - Local
 
@@ -160,19 +112,48 @@ make build
 make test
 ```
 
-### Release Process
+## Features & Roadmap
 
-```bash
-# NOTE: create a new release
-make tag-release TAG=v1.0.0
+### Core Database Operations
 
-# NOTE: or manually
-git tag -a v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
-```
+- [x] List all available databases
+- [x] Query databases (Read/Write operations)
+- [ ] Download database files
+- [ ] Upload database files
+- [ ] Realtime database updates listening
 
-Releases are automatically built with GoReleaser and published to GitHub Container Registry.
+### Storage & Performance
 
-## Security Notice
+- [ ] Add memory stage
+- [ ] Configurable database limits (count & size)
+- [ ] Batched syncing for cost efficiency
+- [ ] Partial database stage promotion (chunk/table/row level)
 
-⚠️ **Important**: For now this server does not include built-in authentication or authorization. Deploy only in secure, controlled environments. Future versions will include JWT-based authentication.
+### Security & Access Control
+
+- [ ] JWT-based authentication with Claims
+- [ ] Database access permissions
+- [ ] Rolling JWT key support
+- [ ] Regex & Wildcard authorization patterns
+
+### Management & Monitoring
+
+- [ ] Web dashboard UI
+- [ ] Infrastructure as code
+- [ ] Usage analytics
+- [ ] Health monitoring
+
+### Developer Experience
+
+- [ ] API documentation
+- [ ] Usage examples
+- [ ] Client SDKs
+
+## Architecture
+
+Persisto uses a simple architecture:
+
+- **SQLite3 driver** for database operations
+- **Abstracted file system** supporting local disk, remote storage, and memory.
+- **Automatic caching** moves frequently accessed data from remote storage to local disk or memory (upcoming).
+- **Multi-stage storage** optimizes for both performance and cost.

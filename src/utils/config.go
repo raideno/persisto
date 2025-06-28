@@ -25,6 +25,76 @@ func (logLevel *LogLevel) UnmarshalText(text []byte) error {
 	return logLevel.Set(text)
 }
 
+func GetLocalStage() uint {
+	return Config.Storage.Local.StageNumber
+}
+
+func GetRemoteStage() uint {
+	return Config.Storage.Remote.StageNumber
+}
+
+func GetClosestStage() uint {
+	return Config.Storage.Local.StageNumber
+}
+
+func GetFarthestStage() uint {
+	return Config.Storage.Remote.StageNumber
+}
+
+func GetAllStageNumbers() []uint {
+	return []uint{Config.Storage.Local.StageNumber, Config.Storage.Remote.StageNumber}
+}
+
+func IsValidStage(stage uint) bool {
+	validStages := GetAllStageNumbers()
+	for _, validStage := range validStages {
+		if stage == validStage {
+			return true
+		}
+	}
+	return false
+}
+
+func GetValidStageRange() (uint, uint) {
+	return GetClosestStage(), GetFarthestStage()
+}
+
+func IsClosestStage(stage uint) bool {
+	return stage == GetClosestStage()
+}
+
+func IsFarthestStage(stage uint) bool {
+	return stage == GetFarthestStage()
+}
+
+func GetNextCloserStage(currentStage uint) uint {
+	if currentStage <= GetClosestStage() {
+		return 0
+	}
+	return currentStage - 1
+}
+
+func GetNextFartherStage(currentStage uint) uint {
+	if currentStage >= GetFarthestStage() {
+		return 0
+	}
+	return currentStage + 1
+}
+
+func GetRemovableStages() []uint {
+	return []uint{Config.Storage.Local.StageNumber, Config.Storage.Remote.StageNumber}
+}
+
+func IsRemovableStage(stage uint) bool {
+	removableStages := GetRemovableStages()
+	for _, removableStage := range removableStages {
+		if stage == removableStage {
+			return true
+		}
+	}
+	return false
+}
+
 type Configuration struct {
 	Server struct {
 		Port        int    `env:"PORT" envDefault:"8080" validate:"gt=0"`
@@ -58,11 +128,6 @@ type Configuration struct {
 	} `envPrefix:"SETTINGS_"`
 
 	Storage struct {
-		Memory struct {
-			Name        string `env:"NAME" envDefault:"Memory Storage"`
-			StageNumber uint   `envDefault:"1" validate:"gt=0"`
-		} `envPrefix:"STORAGE_MEMORY_"`
-
 		Local struct {
 			Name          string `env:"NAME" envDefault:"Local Storage"`
 			StageNumber   uint   `envDefault:"2" validate:"gt=0"`
